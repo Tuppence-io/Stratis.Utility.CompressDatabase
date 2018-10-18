@@ -45,7 +45,6 @@ namespace Stratis.Utility.CompressDatabase
                     command.Description = "Use temporary tables and copy data within the given database.";
                     command.HelpOption(HelpOption);
 
-                    //var dataDirArgument = command.Argument("[datadir]", "Data Directory where the Stratis/DBreeze files are located.");
                     var dataDirOption = command.Option("-datadir <datadir>", "Data Directory where the Stratis/DBreeze files are located.", CommandOptionType.SingleValue);
 
                     command.OnExecute(() =>
@@ -61,6 +60,38 @@ namespace Stratis.Utility.CompressDatabase
                         return CommandCompressInplace(dataDir);
                     });
                 });
+
+                // Compress Inplace Command and Options
+                app.Command("compress-external", (command) =>
+                {
+                    command.Description = "Use external directory to hold the intermediate database while coping data.";
+                    command.HelpOption(HelpOption);
+
+                    var dataDirOption = command.Option("-datadir <datadir>", "Data Directory where the Stratis/DBreeze files are located.", CommandOptionType.SingleValue);
+                    var tempDirOption = command.Option("-tempdir <tempdir>", "Directory to place the temp DBreeze files for intermediate database.", CommandOptionType.SingleValue);
+
+                    command.OnExecute(() =>
+                    {
+                        var dataDir = dataDirOption.Value();
+                        if (dataDir == null || !Directory.Exists(dataDir))
+                        {
+                            command.Error.WriteLine("Missing or invalid data directory option.");
+                            command.ShowHelp();
+                            return 1;
+                        }
+
+                        var tempDir = tempDirOption.Value();
+                        if (tempDir == null || !Directory.Exists(tempDir))
+                        {
+                            command.Error.WriteLine("Missing or invalid temp directory option.");
+                            command.ShowHelp();
+                            return 1;
+                        }
+
+                        return CommandCompressTempDatabase(dataDir, tempDir);
+                    });
+                });
+
 
                 // Default execution if no command was entered.
                 app.OnExecute(() =>
@@ -148,6 +179,11 @@ namespace Stratis.Utility.CompressDatabase
             }
 
             Console.WriteLine($"Successfully completed compressing the database.");
+            return 0;
+        }
+
+        private static int CommandCompressTempDatabase(string dataDir, string tempDir)
+        {
             return 0;
         }
     }
