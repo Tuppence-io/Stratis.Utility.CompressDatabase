@@ -81,6 +81,27 @@ namespace Stratis.Utility.CompressDatabase
                     });
                 });
 
+                // Compress Inplace Command and Options
+                app.Command("inplace-cleanup", (command) =>
+                {
+                    command.Description = "Used to clean up an temp table left behind.  Used in case the compress-inplace command had an exception and did not finish correctly.";
+                    command.HelpOption(HelpOption);
+
+                    var dataDirOption = command.Option("-datadir <datadir>", "Data Directory where the Stratis/DBreeze files are located.", CommandOptionType.SingleValue);
+
+                    command.OnExecute(() =>
+                    {
+                        var dataDir = dataDirOption.Value();
+                        if (dataDir == null || !Directory.Exists(dataDir))
+                        {
+                            command.Error.WriteLine("Missing or invalid data directory option.");
+                            command.ShowHelp();
+                            return 1;
+                        }
+
+                        return new CommandCleanUpTempTable().Execute(dataDir);
+                    });
+                });
 
                 // Default execution if no command was entered.
                 app.OnExecute(() =>

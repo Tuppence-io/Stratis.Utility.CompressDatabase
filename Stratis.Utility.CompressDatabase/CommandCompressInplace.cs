@@ -6,18 +6,13 @@ namespace Stratis.Utility.CompressDatabase
 {
     public class CommandCompressInplace
     {
-        // Name of the temp file to use
-        private const string TempTableName = "CompressTempTable";
-
         public int Execute(string dataDir)
         {
             Console.WriteLine($"Compressing database inplace, data directory = {dataDir}");
-            Console.WriteLine();
 
             foreach (var repository in Consts.Repositories)
             {
                 var repoFolder = Path.Combine(dataDir, repository);
-
                 using (var dbreeze = new DBreezeEngine(repoFolder))
                 {
                     Console.WriteLine($"Opened database in directory {repoFolder}");
@@ -36,7 +31,7 @@ namespace Stratis.Utility.CompressDatabase
                             foreach (var row in trans.SelectForward<byte[], byte[]>(table))
                             {
                                 // Add record to the temp table.
-                                trans.Insert(TempTableName, row.Key, row.Value);
+                                trans.Insert(Consts.TempTableName, row.Key, row.Value);
 
                                 count++;
                                 if (count % 10000 == 0)
@@ -57,7 +52,7 @@ namespace Stratis.Utility.CompressDatabase
 
                         // Rename the temp table to the orginal table name.
                         Console.WriteLine($"[{DateTime.Now}] Renaming new table {table}.");
-                        dbreeze.Scheme.RenameTable(TempTableName, table);
+                        dbreeze.Scheme.RenameTable(Consts.TempTableName, table);
                     }
                 }
             }
