@@ -100,7 +100,7 @@ namespace Stratis.Utility.CompressDatabase
 
                     var dataDirOption = command.Option("-datadir <datadir>", "Data Directory where the Stratis/DBreeze files are located.", CommandOptionType.SingleValue);
                     var tempDirOption = command.Option("-tempdir <tempdir>", "Directory to place the temp DBreeze files for intermediate database (will create the directory if needed).", CommandOptionType.SingleValue);
-                    var deleteOption = command.Option("--delete-tempdir", "Delete the Temp Directory and all copies of the data after the processing has completed.", CommandOptionType.NoValue);
+                    var deleteOption = command.Option("-delete-tempdir", "Delete the Temp Directory and all copies of the data after the processing has completed.", CommandOptionType.NoValue);
 
                     command.OnExecute(() =>
                     {
