@@ -9,7 +9,7 @@ namespace Stratis.Utility.CompressDatabase
         public int Execute(string dataDir, string tempDir, bool deleteTempDir)
         {
             Console.WriteLine($"Compressing database external, data directory = {dataDir}, temp directory = {tempDir}");
-            
+
             // Create the temp directory if needed.
             var ret = ValidateTempDirectory(tempDir);
             if (ret != 0)
@@ -18,7 +18,19 @@ namespace Stratis.Utility.CompressDatabase
             }
 
             CopyDatabaseData(dataDir, tempDir);
+
+            DeleteDatabaseFiles(dataDir);
             CopyDatabaseFiles(dataDir, tempDir);
+
+            if(deleteTempDir)
+            {
+                var tempDirInfo = new DirectoryInfo(tempDir);
+                if(tempDirInfo.Exists)
+                {
+                    Console.WriteLine($"Deleting temp directory {tempDir}");
+                    tempDirInfo.Delete(true);
+                }
+            }
 
             Console.WriteLine($"Successfully completed compressing the database.");
             return 0;
@@ -59,13 +71,13 @@ namespace Stratis.Utility.CompressDatabase
         {
             foreach (var repository in Consts.Repositories)
             {
-                var sourceRrepoFolder = Path.Combine(dataDir, repository);
-                var targetRrepoFolder = Path.Combine(tempDir, repository);
+                var sourceRepoDir = Path.Combine(dataDir, repository);
+                var targetRepoDir = Path.Combine(tempDir, repository);
 
                 Console.WriteLine($"Copying repository {repository}");
 
-                using (var sourceDBreeze = new DBreezeEngine(sourceRrepoFolder))
-                using (var targetDBreeze = new DBreezeEngine(targetRrepoFolder))
+                using (var sourceDBreeze = new DBreezeEngine(sourceRepoDir))
+                using (var targetDBreeze = new DBreezeEngine(targetRepoDir))
                 {
                     CopyTablesData(sourceDBreeze, targetDBreeze, repository);
                 }
@@ -106,8 +118,53 @@ namespace Stratis.Utility.CompressDatabase
             }
         }
 
+        private void DeleteDatabaseFiles(string dataDir)
+        {
+            foreach (var repository in Consts.Repositories)
+            {
+                Console.WriteLine($"Removing files from repository {repository}");
+
+                var repoDir = Path.Combine(dataDir, repository);
+                var dirInfo = new DirectoryInfo(repoDir);
+                if (dirInfo.Exists)
+                {
+                    dirInfo.Delete(true);
+                }
+            }
+        }
+
         private void CopyDatabaseFiles(string dataDir, string tempDir)
         {
+            foreach (var repository in Consts.Repositories)
+            {
+                Console.WriteLine($"Copying files from repository {repository}");
+
+                // Now we are move the files from the temp directory (source) to the data directory (target).
+                var sourceRepoDir = Path.Combine(tempDir, repository);
+                var targetRepoDir = Path.Combine(dataDir, repository);
+
+                // Make sure that the target directory exist
+                if (!Directory.Exists(targetRepoDir))
+                {
+                    Directory.CreateDirectory(targetRepoDir);
+                }
+
+                // Copy all the files in the folder
+                var sourceDirInfo = new DirectoryInfo(sourceRepoDir);
+                foreach(var fileInfo in sourceDirInfo.GetFiles())
+                {
+                    Console.WriteLine($"Copy file {fileInfo.Name} starting at {DateTime.Now}");
+                    fileInfo.CopyToDirectory(targetRepoDir, ReportFileProgress);
+                    Console.WriteLine($"Copy file {fileInfo.Name} finished at {DateTime.Now}");
+                }
+            }
+        }
+
+        private void ReportFileProgress(FileInfo fileInfo, long bytesCopied, long totalBytes)
+        {
+            double percentDone = (double) bytesCopied / (double) totalBytes;
+
+            Console.WriteLine($"[{DateTime.Now}] {fileInfo.Name} copied {percentDone:p} ({bytesCopied}/{totalBytes}) ");
         }
     }
 }

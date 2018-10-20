@@ -12,10 +12,10 @@ namespace Stratis.Utility.CompressDatabase
 
             foreach (var repository in Consts.Repositories)
             {
-                var repoFolder = Path.Combine(dataDir, repository);
-                using (var dbreeze = new DBreezeEngine(repoFolder))
+                var repoDir = Path.Combine(dataDir, repository);
+                using (var dbreeze = new DBreezeEngine(repoDir))
                 {
-                    Console.WriteLine($"Opened database in directory {repoFolder}");
+                    Console.WriteLine($"Opened database in directory {repoDir}");
 
                     var tables = dbreeze.Scheme.GetUserTableNamesStartingWith(string.Empty);
                     Console.WriteLine($"Found {tables.Count} table in {repository} database.");
@@ -50,7 +50,7 @@ namespace Stratis.Utility.CompressDatabase
                         Console.WriteLine($"[{DateTime.Now}] Deleting old table {table}.");
                         dbreeze.Scheme.DeleteTable(table);
 
-                        // Rename the temp table to the orginal table name.
+                        // Rename the temp table to the original table name.
                         Console.WriteLine($"[{DateTime.Now}] Renaming new table {table}.");
                         dbreeze.Scheme.RenameTable(Consts.TempTableName, table);
                     }
