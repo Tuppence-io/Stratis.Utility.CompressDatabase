@@ -1,5 +1,5 @@
 # Stratis.Utility.CompressDatabase
-A simple utility that will unload/reload data for a Stratis Full Node (DBreeze database).
+A simple utility that will unload/reload data for a [Stratis Full Node](https://github.com/stratisproject/StratisBitcoinFullNode) (DBreeze database).
 
 This was designed to provide a workaround to the following issues.
 1. [Size of CoinView UTXO Data](https://github.com/stratisproject/StratisBitcoinFullNode/issues/2414)
